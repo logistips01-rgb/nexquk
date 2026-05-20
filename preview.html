@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>NexQuk — Preview</title>
+<style>
+/* ============================================================
+   NEXQUK DESIGN PREVIEW — standalone, sin dependencias
+   ============================================================ */
+:root {
+  --bg:           #0f0f0f;
+  --surface:      #1a1a1a;
+  --surface2:     #242424;
+  --surface3:     #2e2e2e;
+  --border:       #333;
+  --primary:      #ff6b35;
+  --primary-glow: rgba(255,107,53,.35);
+  --secondary:    #4a9eff;
+  --danger:       #ff4444;
+  --success:      #44d47a;
+  --warning:      #ffb833;
+  --text:         #f0f0f0;
+  --text2:        #999;
+  --text3:        #555;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --header-h:     56px;
+  --nav-h:        68px;
+  --t:            .18s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+input, button, select, textarea { font: inherit; }
+button { cursor: pointer; border: none; background: none; }
+
+/* ── Frame móvil para desktop ── */
+@media (min-width: 520px) {
+  body { display: flex; align-items: flex-start; justify-content: center; background: #080808; padding: 32px 0 60px; gap: 40px; }
+  #phone-frame {
+    width: 390px;
+    height: 844px;
+    border-radius: 44px;
+    border: 8px solid #2a2a2a;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,.7), 0 0 0 1px #111;
+    flex-shrink: 0;
+  }
+  #phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px;
+    background: #2a2a2a;
+    border-radius: 0 0 18px 18px;
+    z-index: 9999;
+  }
+  #app-root { height: 100%; overflow: hidden; }
+  #sidebar { width: 260px; flex-shrink: 0; }
+}
+@media (max-width: 519px) {
+  #phone-frame { width: 100%; height: 100dvh; }
+  #sidebar { display: none; }
+}
+
+/* ── Sidebar de navegación (desktop) ── */
+#sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: flex-start;
+  position: sticky;
+  top: 32px;
+}
+#sidebar h3 { font-size: .75rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.sidebar-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--t);
+  background: none;
+  border: none;
+  text-align: left;
+  width: 100%;
+}
+.sidebar-btn:hover { background: var(--surface2); color: var(--text); }
+.sidebar-btn.active { background: rgba(255,107,53,.12); color: var(--primary); }
+.sidebar-btn .sicon { font-size: 1.1rem; }
+#sidebar .hint { font-size: .78rem; color: var(--text3); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); line-height: 1.5; }
+
+/* ============================================================
+   APP ROOT
+   ============================================================ */
+#app-root {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  height: 100%;
+  position: relative;
+}
+
+/* ── Header ── */
+#app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h);
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+}
+.header-logo { font-weight: 800; font-size: 1.1rem; letter-spacing: -.5px; }
+.header-logo span { color: var(--primary); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.conn-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
+.btn-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  font-size: .82rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Views ── */
+#views { flex: 1; overflow: hidden; position: relative; }
+.view {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.view.active { display: flex; }
+
+/* ── Bottom nav ── */
+#bottom-nav {
+  display: flex;
+  height: var(--nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; color: var(--text3);
+  font-size: .72rem; font-weight: 600;
+  letter-spacing: .3px; min-height: 48px;
+  background: none; border: none; cursor: pointer;
+  transition: color var(--t);
+}
+.nav-btn.active { color: var(--primary); }
+.nav-icon { font-size: 1.35rem; line-height: 1; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 20px; border-radius: var(--radius);
+  font-weight: 700; font-size: .95rem;
+  transition: opacity var(--t), transform .1s, box-shadow var(--t);
+  user-select: none; -webkit-tap-highlight-color: transparent;
+  min-height: 50px; border: none; cursor: pointer;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary  { background: var(--primary); color: #fff; }
+.btn-primary:hover { box-shadow: 0 4px 18px var(--primary-glow); }
+.btn-secondary { background: var(--surface3); color: var(--text); border: 1.5px solid var(--border); }
+.btn-danger   { background: var(--danger); color: #fff; }
+.btn-ghost    { background: transparent; color: var(--text2); border: 1.5px solid var(--border); }
+.btn-xl       { padding: 18px 24px; font-size: 1.05rem; flex: 1; }
+.btn-sm       { padding: 8px 14px; font-size: .85rem; min-height: 36px; }
+.btn-full     { width: 100%; }
+.btn-icon     {
+  width: 44px; height: 44px; border-radius: var(--radius-sm);
+  color: var(--text2); display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; transition: background var(--t), color var(--t);
+  background: none; border: none; cursor: pointer;
+}
+.btn-icon:hover { background: var(--surface3); color: var(--text); }
+
+/* ============================================================
+   VIEW: CONTROL
+   ============================================================ */
+#view-control { padding: 16px; gap: 14px; }
+.vitro-layout { display: flex; flex-direction: column; gap: 12px; }
+.vitro-row { display: flex; gap: 12px; }
+.vitro-row .burner-card { flex: 1; }
+
+.burner-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: border-color .3s, box-shadow .3s;
+  position: relative; overflow: hidden;
+}
+.burner-card.active {
+  border-color: var(--bc, var(--primary));
+  box-shadow: 0 0 0 1px var(--bc, var(--primary));
+}
+.burner-card.boost-on {
+  background: radial-gradient(ellipse at center, #2a0800 0%, var(--surface) 70%);
+}
+.burner-header { display: flex; align-items: center; justify-content: space-between; }
+.burner-name { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text2); }
+.burner-header-right { display: flex; align-items: center; gap: 8px; }
+
+/* Toggle power */
+.btn-power-toggle {
+  width: 44px; height: 28px; border-radius: 14px;
+  background: var(--surface3); border: 2px solid var(--border);
+  position: relative; cursor: pointer;
+  transition: background var(--t), border-color var(--t);
+  flex-shrink: 0;
+}
+.btn-power-toggle::after {
+  content: ''; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--text3); position: absolute;
+  top: 2px; left: 2px;
+  transition: transform var(--t), background var(--t);
+}
+.btn-power-toggle.on { background: var(--bc, var(--primary)); border-color: var(--bc, var(--primary)); }
+.btn-power-toggle.on::after { transform: translateX(16px); background: #fff; }
+
+/* Boost */
+.btn-boost {
+  font-size: .7rem; font-weight: 800; letter-spacing: .4px;
+  padding: 4px 8px; border-radius: 6px;
+  background: var(--surface3); color: var(--text3);
+  border: 1px solid var(--border);
+  transition: all var(--t); min-height: 28px; cursor: pointer;
+}
+.btn-boost.on { background: var(--danger); color: #fff; border-color: var(--danger); box-shadow: 0 0 10px rgba(255,68,68,.4); }
+
+/* Burner visual */
+.burner-body { display: flex; align-items: center; gap: 12px; }
+.burner-visual {
+  width: 76px; height: 76px; border-radius: 50%;
+  background: var(--surface2); border: 3px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex-shrink: 0;
+  transition: border-color .3s, box-shadow .3s;
+}
+.burner-visual::before {
+  content: ''; width: 58%; height: 58%; border-radius: 50%;
+  border: 2px solid var(--border); position: absolute;
+  transition: border-color .3s;
+}
+.burner-visual.on {
+  border-color: var(--bc, var(--primary));
+  box-shadow: 0 0 18px var(--bg, var(--primary-glow));
+}
+.burner-visual.on::before { border-color: var(--bc, var(--primary)); opacity: .5; }
+.burner-num {
+  font-size: 1.5rem; font-weight: 900;
+  color: var(--bc, var(--text3)); z-index: 1; line-height: 1;
+}
+.slider-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.power-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 6px; border-radius: 3px;
+  background: var(--surface3); outline: none; cursor: pointer;
+}
+.power-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.4); cursor: pointer;
+  transition: transform .1s;
+}
+.power-slider:active::-webkit-slider-thumb { transform: scale(1.2); }
+.slider-labels { display: flex; justify-content: space-between; font-size: .7rem; color: var(--text3); }
+.burner-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--border); padding-top: 10px;
+}
+.btn-timer {
+  font-size: .78rem; font-weight: 600; color: var(--text2);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 10px; min-height: 30px; cursor: pointer;
+  transition: all var(--t);
+}
+.btn-timer.on { color: var(--warning); border-color: var(--warning); background: rgba(255,184,51,.08); }
+.timer-disp { font-size: .85rem; font-weight: 700; color: var(--warning); min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.global-controls { display: flex; gap: 10px; }
+#btn-child-lock { min-width: 52px; }
+#btn-child-lock.locked { background: var(--warning); color: #000; border-color: var(--warning); }
+
+/* ============================================================
+   VIEW: RECETAS
+   ============================================================ */
+#view-recetas { padding: 16px; gap: 14px; }
+.view-header { display: flex; align-items: center; justify-content: space-between; }
+.view-header h2 { font-size: 1.15rem; font-weight: 800; }
+.recipes-list { display: flex; flex-direction: column; gap: 10px; }
+.recipe-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+  transition: border-color var(--t), background var(--t);
+  -webkit-tap-highlight-color: transparent;
+}
+.recipe-card:hover { border-color: var(--primary); background: var(--surface2); }
+.recipe-thumb {
+  width: 52px; height: 52px; border-radius: var(--radius-sm);
+  background: var(--surface3); display: flex; align-items: center;
+  justify-content: center; font-size: 1.6rem; flex-shrink: 0;
+}
+.recipe-info { flex: 1; min-width: 0; }
+.recipe-title { font-weight: 700; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recipe-meta { font-size: .78rem; color: var(--text2); margin-top: 3px; }
+.recipe-actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+/* ============================================================
+   VIEW: EDITOR
+   ============================================================ */
+#view-editor { padding: 0; }
+.editor-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.editor-header h2 { flex: 1; font-size: 1.05rem; font-weight: 700; }
+.editor-body { padding: 16px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; flex: 1; }
+.field-group { display: flex; flex-direction: column; gap: 7px; }
+.field-label { font-size: .8rem; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+.field-input {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  padding: 12px 14px; font-size: .95rem; outline: none;
+  transition: border-color var(--t); width: 100%;
+}
+.field-input:focus { border-color: var(--primary); }
+.field-input::placeholder { color: var(--text3); }
+.field-row { display: flex; gap: 10px; }
+.field-row .field-group { flex: 1; }
+.section-hdr { display: flex; align-items: center; justify-content: space-between; }
+.section-hdr h3 { font-size: .95rem; font-weight: 700; }
+.divider { height: 1px; background: var(--border); }
+.steps-list { display: flex; flex-direction: column; gap: 8px; }
+.step-item {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: grab;
+}
+.step-item:hover { border-color: var(--border); background: var(--surface2); }
+.drag-handle { color: var(--text3); font-size: 1.1rem; user-select: none; }
+.step-info { flex: 1; min-width: 0; }
+.step-name-sm { font-weight: 700; font-size: .9rem; }
+.step-meta-sm { font-size: .75rem; color: var(--text2); margin-top: 2px; }
+.step-actions { display: flex; gap: 2px; }
+
+/* ============================================================
+   VIEW: COOKING
+   ============================================================ */
+#view-cooking {
+  background: var(--bg);
+  display: flex; flex-direction: column;
+}
+.cooking-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.cooking-title { font-weight: 800; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progress-track { height: 4px; background: var(--surface2); flex-shrink: 0; }
+.progress-fill  { height: 100%; background: var(--primary); transition: width .5s ease; }
+.cooking-body {
+  flex: 1; display: flex; flex-direction: column;
+  padding: 18px 18px 14px; gap: 14px; overflow: hidden;
+}
+.cooking-meta { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.step-badge {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: .8rem; font-weight: 700; color: var(--text2);
+}
+.step-badge b { color: var(--primary); }
+.paused-pill {
+  background: rgba(255,184,51,.15); color: var(--warning);
+  border: 1px solid rgba(255,184,51,.3); border-radius: 12px;
+  padding: 4px 12px; font-size: .78rem; font-weight: 700;
+}
+.cooking-main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 14px; text-align: center; }
+.c-step-name { font-size: 1.5rem; font-weight: 900; line-height: 1.2; }
+.c-countdown {
+  font-size: 4.2rem; font-weight: 900; letter-spacing: -3px;
+  color: var(--primary); font-variant-numeric: tabular-nums; line-height: 1;
+  filter: drop-shadow(0 0 18px var(--primary-glow));
+}
+.c-countdown.urgent { color: var(--danger); filter: drop-shadow(0 0 18px rgba(255,68,68,.4)); animation: pulse .6s ease infinite alternate; }
+@keyframes pulse { from { opacity: 1; } to { opacity: .65; } }
+.c-instruction { font-size: 1rem; color: var(--text2); line-height: 1.5; max-width: 290px; }
+.mini-burners { display: flex; gap: 8px; justify-content: center; flex-shrink: 0; }
+.mini-b {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 7px 10px; min-width: 50px;
+  transition: border-color var(--t);
+}
+.mini-b.on { border-color: var(--bc, var(--primary)); }
+.mini-lbl { font-size: .65rem; font-weight: 700; text-transform: uppercase; color: var(--text3); letter-spacing: .3px; }
+.mini-pow { font-size: .95rem; font-weight: 900; color: var(--bc, var(--text3)); }
+.next-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 12px;
+  font-size: .82rem; color: var(--text2);
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.next-lbl { font-weight: 600; color: var(--text3); flex-shrink: 0; }
+.next-nm  { font-weight: 700; color: var(--text); }
+.cooking-controls { display: flex; gap: 10px; flex-shrink: 0; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.7);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 500; backdrop-filter: blur(4px);
+  animation: fade-in .15s ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.modal-sheet {
+  background: var(--surface); border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%; max-width: 480px; padding-bottom: 20px;
+  animation: slide-up .2s ease;
+}
+@keyframes slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 18px; }
+.modal-hdr { display: flex; align-items: center; padding: 0 20px 14px; border-bottom: 1px solid var(--border); }
+.modal-hdr h3 { flex: 1; font-size: 1.05rem; font-weight: 800; }
+.modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer { padding: 10px 20px 0; display: flex; gap: 10px; align-items: center; }
+.duration-row { display: flex; gap: 8px; align-items: center; }
+.duration-row .field-input { text-align: center; font-size: 1.1rem; font-weight: 700; max-width: 72px; }
+.duration-sep { font-size: 1rem; font-weight: 700; color: var(--text2); flex-shrink: 0; }
+
+/* Toggle switch */
+.t-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.t-track {
+  width: 42px; height: 26px; border-radius: 13px;
+  background: var(--surface3); border: 2px solid var(--border);
+  position: relative; transition: background var(--t), border-color var(--t); flex-shrink: 0;
+}
+.t-track.on { background: var(--primary); border-color: var(--primary); }
+.t-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--text3); position: absolute; top: 2px; left: 2px;
+  transition: transform var(--t), background var(--t);
+}
+.t-track.on .t-thumb { transform: translateX(16px); background: #fff; }
+.t-label { font-size: .82rem; color: var(--text2); }
+
+/* Burner mini en modal paso */
+.step-burner-section {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 11px; display: flex; flex-direction: column; gap: 9px;
+}
+.sbr { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sb-name { font-size: .83rem; font-weight: 700; flex-shrink: 0; min-width: 72px; }
+.sb-pow { font-size: .88rem; font-weight: 700; color: var(--primary); min-width: 22px; text-align: right; flex-shrink: 0; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toast {
+  position: absolute; bottom: calc(var(--nav-h) + 12px); left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border); border-radius: 24px;
+  padding: 9px 18px; font-size: .85rem; font-weight: 600;
+  z-index: 1000; white-space: nowrap; box-shadow: 0 4px 18px rgba(0,0,0,.4);
+  transition: opacity .3s, transform .3s; pointer-events: none;
+}
+#toast.hide { opacity: 0; transform: translateX(-50%) translateY(10px); }
+
+/* ── Auth screen ── */
+#screen-auth {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at top, #1f1008 0%, var(--bg) 60%);
+  padding: 32px; gap: 48px; z-index: 9000;
+}
+.auth-logo { text-align: center; }
+.auth-logo .flame { font-size: 60px; display: block; margin-bottom: 12px; filter: drop-shadow(0 0 20px #ff6b35); }
+.auth-logo h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; }
+.auth-logo p  { color: var(--text2); margin-top: 6px; font-size: .9rem; }
+.auth-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 300px; }
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-5px); }
+  40%      { transform: translateX(5px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Frame móvil ── -->
+<div id="phone-frame">
+<div id="app-root">
+
+  <!-- AUTH -->
+  <div id="screen-auth" style="display:none">
+    <div class="auth-logo">
+      <span class="flame">🔥</span>
+      <h1>NexQuk</h1>
+      <p>Control inteligente de cocina</p>
+    </div>
+    <div class="auth-btns">
+      <button class="btn btn-primary btn-full" onclick="enterApp()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6 29.3 4 24 4 12.9 4 4 13 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2A12 12 0 0 1 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+        Entrar con Google
+      </button>
+      <button class="btn btn-ghost btn-full" onclick="enterApp()">Modo demo</button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-logo"><span>🔥</span> NexQuk</div>
+    <div class="header-right">
+      <div class="conn-dot" title="Conectado"></div>
+      <div class="btn-avatar">M</div>
+    </div>
+  </header>
+
+  <!-- VIEWS -->
+  <div id="views">
+
+    <!-- ════ CONTROL ════ -->
+    <div class="view active" id="view-control">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1">
+        <div class="vitro-layout">
+          <!-- Trasero -->
+          <div class="vitro-row">
+            <div class="burner-card" id="bc-trasero">
+              <div class="burner-header">
+                <span class="burner-name">Trasero</span>
+                <div class="burner-header-right">
+                  <button class="btn-boost" id="boost-trasero" onclick="toggleBoost('trasero')">BOOST</button>
+                  <div class="btn-power-toggle" id="toggle-trasero" onclick="toggleBurner('trasero')"></div>
+                </div>
+              </div>
+              <div class="burner-body">
+                <div class="burner-visual" id="vis-trasero">
+                  <span class="burner-num" id="num-trasero">0</span>
+                </div>
+                <div class="slider-wrap">
+                  <input type="range" class="power-slider" min="0" max="17" value="0" id="sl-trasero"
+                    oninput="setPower('trasero', this.value)">
+                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
+                </div>
+              </div>
+              <div class="burner-footer">
+                <button class="btn-timer" id="tbtn-trasero" onclick="openTimer('trasero')">⏱ Timer</button>
+                <span class="timer-disp" id="tdisp-trasero"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Delanteros -->
+          <div class="vitro-row">
+            <!-- Del Izq -->
+            <div class="burner-card" id="bc-delantera_izq">
+              <div class="burner-header">
+                <span class="burner-name">Del. Izq.</span>
+                <div class="burner-header-right">
+                  <button class="btn-boost" id="boost-delantera_izq" onclick="toggleBoost('delantera_izq')">BOOST</button>
+                  <div class="btn-power-toggle" id="toggle-delantera_izq" onclick="toggleBurner('delantera_izq')"></div>
+                </div>
+              </div>
+              <div class="burner-body">
+                <div class="burner-visual" id="vis-delantera_izq">
+                  <span class="burner-num" id="num-delantera_izq">0</span>
+                </div>
+                <div class="slider-wrap">
+                  <input type="range" class="power-slider" min="0" max="17" value="0" id="sl-delantera_izq"
+                    oninput="setPower('delantera_izq', this.value)">
+                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
+                </div>
+              </div>
+              <div class="burner-footer">
+                <button class="btn-timer" id="tbtn-delantera_izq" onclick="openTimer('delantera_izq')">⏱ Timer</button>
+                <span class="timer-disp" id="tdisp-delantera_izq"></span>
+              </div>
+            </div>
+            <!-- Del Der -->
+            <div class="burner-card" id="bc-delantera_der">
+              <div class="burner-header">
+                <span class="burner-name">Del. Der.</span>
+                <div class="burner-header-right">
+                  <button class="btn-boost" id="boost-delantera_der" onclick="toggleBoost('delantera_der')">BOOST</button>
+                  <div class="btn-power-toggle" id="toggle-delantera_der" onclick="toggleBurner('delantera_der')"></div>
+                </div>
+              </div>
+              <div class="burner-body">
+                <div class="burner-visual" id="vis-delantera_der">
+                  <span class="burner-num" id="num-delantera_der">0</span>
+                </div>
+                <div class="slider-wrap">
+                  <input type="range" class="power-slider" min="0" max="17" value="0" id="sl-delantera_der"
+                    oninput="setPower('delantera_der', this.value)">
+                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
+                </div>
+              </div>
+              <div class="burner-footer">
+                <button class="btn-timer" id="tbtn-delantera_der" onclick="openTimer('delantera_der')">⏱ Timer</button>
+                <span class="timer-disp" id="tdisp-delantera_der"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="global-controls">
+          <button class="btn btn-danger" style="flex:1" onclick="allOff()">⬛ Todo apagado</button>
+          <button class="btn btn-secondary" id="btn-child-lock" onclick="toggleLock()">🔒</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ RECETAS ════ -->
+    <div class="view" id="view-recetas">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1">
+        <div class="view-header">
+          <h2>Mis recetas</h2>
+          <button class="btn btn-primary btn-sm" onclick="showView('editor')">+ Nueva</button>
+        </div>
+        <div class="recipes-list" id="recipe-list"></div>
+      </div>
+    </div>
+
+    <!-- ════ EDITOR ════ -->
+    <div class="view" id="view-editor">
+      <div class="editor-header">
+        <button class="btn-icon" onclick="showView('recetas')" style="font-size:1.3rem">←</button>
+        <h2>Nueva receta</h2>
+        <button class="btn btn-primary btn-sm" onclick="toast('Receta guardada ✓')">Guardar</button>
+      </div>
+      <div class="editor-body">
+        <div class="field-group">
+          <label class="field-label">Nombre de la receta</label>
+          <input class="field-input" type="text" placeholder="Ej: Paella valenciana" value="Sofrito base">
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Dificultad</label>
+            <select class="field-input"><option>Fácil</option><option selected>Media</option><option>Difícil</option></select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Personas</label>
+            <input class="field-input" type="number" value="4" min="1">
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-hdr">
+          <h3>Pasos</h3>
+          <button class="btn btn-ghost btn-sm" onclick="openStepModal()">+ Paso</button>
+        </div>
+        <div class="steps-list">
+          <div class="step-item">
+            <span class="drag-handle">⠿</span>
+            <div class="step-info">
+              <div class="step-name-sm">Calentar aceite</div>
+              <div class="step-meta-sm">2:00 · Trasero (5)</div>
+            </div>
+            <div class="step-actions">
+              <button class="btn-icon" onclick="openStepModal(0)">✏️</button>
+              <button class="btn-icon" style="color:var(--danger)">🗑</button>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="drag-handle">⠿</span>
+            <div class="step-info">
+              <div class="step-name-sm">Pochar cebolla</div>
+              <div class="step-meta-sm">5:00 · Trasero (6)</div>
+            </div>
+            <div class="step-actions">
+              <button class="btn-icon" onclick="openStepModal(1)">✏️</button>
+              <button class="btn-icon" style="color:var(--danger)">🗑</button>
+            </div>
+          </div>
+          <div class="step-item">
+            <span class="drag-handle">⠿</span>
+            <div class="step-info">
+              <div class="step-name-sm">Añadir tomate</div>
+              <div class="step-meta-sm">3:00 · Trasero (7)</div>
+            </div>
+            <div class="step-actions">
+              <button class="btn-icon" onclick="openStepModal(2)">✏️</button>
+              <button class="btn-icon" style="color:var(--danger)">🗑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ COOKING ════ -->
+    <div class="view" id="view-cooking">
+      <div class="cooking-bar">
+        <span class="cooking-title" id="c-recipe-name">Sofrito base</span>
+        <button class="btn-icon" onclick="endDemo()">✕</button>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="c-progress" style="width:33%"></div>
+      </div>
+      <div class="cooking-body">
+        <div class="cooking-meta">
+          <div class="step-badge">Paso <b id="c-cur">1</b> de <span id="c-tot">3</span></div>
+          <div class="paused-pill" id="c-paused" style="display:none">⏸ PAUSADO</div>
+        </div>
+        <div class="cooking-main">
+          <h1 class="c-step-name" id="c-step-name">Calentar aceite</h1>
+          <div class="c-countdown" id="c-countdown">1:58</div>
+          <p class="c-instruction" id="c-instruction">Añade aceite de oliva virgen extra a la sartén y espera a que esté caliente.</p>
+        </div>
+        <div class="mini-burners">
+          <div class="mini-b on" style="--bc:#ff8800">
+            <span class="mini-lbl">Tras.</span>
+            <span class="mini-pow" style="color:#ff8800">5</span>
+          </div>
+          <div class="mini-b" id="mb-diz">
+            <span class="mini-lbl">D.Izq</span>
+            <span class="mini-pow">—</span>
+          </div>
+          <div class="mini-b" id="mb-dde">
+            <span class="mini-lbl">D.Der</span>
+            <span class="mini-pow">—</span>
+          </div>
+        </div>
+        <div class="next-box">
+          <span class="next-lbl">A continuación:</span>
+          <span class="next-nm" id="c-next">Pochar cebolla</span>
+        </div>
+        <div class="cooking-controls">
+          <button class="btn btn-secondary btn-xl" id="btn-pause" onclick="togglePause()">⏸ Pausar</button>
+          <button class="btn btn-primary btn-xl" onclick="nextStep()">Saltar →</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /views -->
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" onclick="showView('control')">
+      <span class="nav-icon">🔥</span><span>Control</span>
+    </button>
+    <button class="nav-btn" onclick="showView('recetas')">
+      <span class="nav-icon">📖</span><span>Recetas</span>
+    </button>
+  </nav>
+
+  <!-- TOAST -->
+  <div id="toast" class="hide"></div>
+
+</div><!-- /app-root -->
+</div><!-- /phone-frame -->
+
+
+<!-- ── Sidebar desktop ── -->
+<div id="sidebar">
+  <h3>Pantallas</h3>
+  <button class="sidebar-btn active" onclick="sideNav('control', this)"><span class="sicon">🔥</span> Control manual</button>
+  <button class="sidebar-btn" onclick="sideNav('recetas', this)"><span class="sicon">📖</span> Biblioteca de recetas</button>
+  <button class="sidebar-btn" onclick="sideNav('editor', this)"><span class="sicon">✏️</span> Editor de receta</button>
+  <button class="sidebar-btn" onclick="sideNav('cooking', this)"><span class="sicon">🍳</span> Modo cocción</button>
+  <button class="sidebar-btn" onclick="sideNav('auth', this)"><span class="sicon">🔐</span> Pantalla auth</button>
+
+  <p class="hint">
+    <b>Preview interactivo.</b><br>
+    Los controles funcionan de verdad.<br>
+    Abre en móvil para ver la experiencia real.
+  </p>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL: TIMER
+     ══════════════════════════════════════════ -->
+<div id="modal-timer" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal('modal-timer')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <h3 id="timer-title">Timer — Trasero</h3>
+      <button class="btn-icon" onclick="closeModal('modal-timer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Duración</label>
+        <div class="duration-row">
+          <input id="t-min" class="field-input" type="number" min="0" max="999" value="5" inputmode="numeric">
+          <span class="duration-sep">min</span>
+          <input id="t-sec" class="field-input" type="number" min="0" max="59" value="0" inputmode="numeric">
+          <span class="duration-sep">seg</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="clearTimer();closeModal('modal-timer')">Borrar</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" onclick="startTimer()">Iniciar timer</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL: EDITOR DE PASO
+     ══════════════════════════════════════════ -->
+<div id="modal-step" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal('modal-step')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <h3 id="step-modal-title">Editar paso</h3>
+      <button class="btn-icon" onclick="closeModal('modal-step')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Nombre del paso</label>
+        <input class="field-input" id="s-name" type="text" placeholder="Ej: Pochar la cebolla" value="Calentar aceite">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Duración</label>
+        <div class="duration-row">
+          <input class="field-input" id="s-min" type="number" min="0" value="2" inputmode="numeric">
+          <span class="duration-sep">min</span>
+          <input class="field-input" id="s-sec" type="number" min="0" max="59" value="0" inputmode="numeric">
+          <span class="duration-sep">seg</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Instrucción</label>
+        <textarea class="field-input" rows="2" placeholder="Ej: Añade el ajo y sofríe">Añade aceite de oliva a la sartén</textarea>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Fuegos</label>
+        <!-- Trasero -->
+        <div class="step-burner-section" style="margin-bottom:8px">
+          <div class="sbr">
+            <span class="sb-name">Trasero</span>
+            <div class="t-wrap" onclick="toggleStepBurner('st-t','sc-t','sl-t','sd-t')">
+              <div class="t-track on" id="st-t"><div class="t-thumb"></div></div>
+              <span class="t-label" id="tl-t">Encendido</span>
+            </div>
+          </div>
+          <div id="sc-t" class="sbr">
+            <input type="range" class="power-slider" min="0" max="17" value="5" id="sl-t" oninput="document.getElementById('sd-t').textContent=this.value" style="flex:1">
+            <span class="sb-pow" id="sd-t">5</span>
+          </div>
+        </div>
+        <!-- Del Izq -->
+        <div class="step-burner-section" style="margin-bottom:8px">
+          <div class="sbr">
+            <span class="sb-name">Del. Izq.</span>
+            <div class="t-wrap" onclick="toggleStepBurner('st-di','sc-di','sl-di','sd-di')">
+              <div class="t-track" id="st-di"><div class="t-thumb"></div></div>
+              <span class="t-label" id="tl-di">Apagado</span>
+            </div>
+          </div>
+          <div id="sc-di" class="sbr" style="display:none">
+            <input type="range" class="power-slider" min="0" max="17" value="5" id="sl-di" oninput="document.getElementById('sd-di').textContent=this.value" style="flex:1">
+            <span class="sb-pow" id="sd-di">5</span>
+          </div>
+        </div>
+        <!-- Del Der -->
+        <div class="step-burner-section">
+          <div class="sbr">
+            <span class="sb-name">Del. Der.</span>
+            <div class="t-wrap" onclick="toggleStepBurner('st-dd','sc-dd','sl-dd','sd-dd')">
+              <div class="t-track" id="st-dd"><div class="t-thumb"></div></div>
+              <span class="t-label" id="tl-dd">Apagado</span>
+            </div>
+          </div>
+          <div id="sc-dd" class="sbr" style="display:none">
+            <input type="range" class="power-slider" min="0" max="17" value="5" id="sl-dd" oninput="document.getElementById('sd-dd').textContent=this.value" style="flex:1">
+            <span class="sb-pow" id="sd-dd">5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del-step" style="display:none">Borrar</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" onclick="closeModal('modal-step');toast('Paso guardado ✓')">Guardar paso</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ============================================================
+// ESTADO
+// ============================================================
+const B = {
+  trasero:       { activo: false, potencia: 0, boost: false },
+  delantera_izq: { activo: false, potencia: 0, boost: false },
+  delantera_der: { activo: false, potencia: 0, boost: false }
+};
+const ZONES = ['trasero','delantera_izq','delantera_der'];
+let locked = false;
+let timerZone = null;
+let timerIntervals = {trasero:null,delantera_izq:null,delantera_der:null};
+let timerSecs     = {trasero:0,   delantera_izq:0,   delantera_der:0   };
+
+// Cooking demo state
+const DEMO_STEPS = [
+  { nombre:'Calentar aceite', duracion:120, instruccion:'Añade aceite de oliva virgen extra a la sartén y espera a que esté caliente.', fuegos:{trasero:{activo:true,potencia:5},delantera_izq:{activo:false,potencia:0},delantera_der:{activo:false,potencia:0}} },
+  { nombre:'Pochar cebolla',  duracion:300, instruccion:'Añade la cebolla picada. Sofríe a fuego medio-bajo hasta que esté transparente.',   fuegos:{trasero:{activo:true,potencia:6},delantera_izq:{activo:false,potencia:0},delantera_der:{activo:false,potencia:0}} },
+  { nombre:'Añadir tomate',   duracion:180, instruccion:'Incorpora el tomate triturado. Remueve y deja reducir. Sazona al gusto.', fuegos:{trasero:{activo:true,potencia:7},delantera_izq:{activo:false,potencia:0},delantera_der:{activo:false,potencia:0}} }
+];
+let cookStep = 0, cookTime = 120, cookPaused = false, cookInterval = null;
+
+// ============================================================
+// COLORES FUEGO
+// ============================================================
+function burnerColor(p, boost) {
+  if (boost)    return {c:'#ff1a00',g:'rgba(255,26,0,.55)'};
+  if (p >= 13)  return {c:'#ff2200',g:'rgba(255,34,0,.45)'};
+  if (p >= 8)   return {c:'#ff5500',g:'rgba(255,85,0,.4)'};
+  if (p >= 4)   return {c:'#ff8800',g:'rgba(255,136,0,.35)'};
+  return              {c:'#ffaa00',g:'rgba(255,170,0,.3)'};
+}
+
+// ============================================================
+// BURNER UI
+// ============================================================
+function updateBurner(z) {
+  const b    = B[z];
+  const card = document.getElementById('bc-'+z);
+  const vis  = document.getElementById('vis-'+z);
+  const num  = document.getElementById('num-'+z);
+  const tog  = document.getElementById('toggle-'+z);
+  const bst  = document.getElementById('boost-'+z);
+  const sl   = document.getElementById('sl-'+z);
+
+  sl.value = b.potencia;
+  tog.classList.toggle('on', b.activo);
+  bst.classList.toggle('on', b.boost);
+  card.classList.toggle('active', b.activo);
+  card.classList.toggle('boost-on', b.boost);
+
+  if (b.activo && b.potencia > 0) {
+    const {c,g} = burnerColor(b.potencia, b.boost);
+    vis.classList.add('on');
+    vis.style.setProperty('--bc', c);
+    vis.style.setProperty('--bg', g);
+    card.style.setProperty('--bc', c);
+    num.textContent = b.boost ? 'B' : b.potencia;
+    num.style.color = c;
+  } else {
+    vis.classList.remove('on');
+    vis.style.removeProperty('--bc');
+    vis.style.removeProperty('--bg');
+    card.style.removeProperty('--bc');
+    num.textContent = '0';
+    num.style.color = '';
+  }
+}
+function updateAll() { ZONES.forEach(updateBurner); }
+
+// ============================================================
+// CONTROLES
+// ============================================================
+function toggleBurner(z) {
+  if (locked) { shakeLock(z); return; }
+  const b = B[z];
+  if (b.activo) { b.activo=false; b.potencia=0; b.boost=false; clearTimerZ(z); }
+  else          { b.activo=true;  b.potencia=b.potencia||5; }
+  updateBurner(z);
+}
+function setPower(z, v) {
+  if (locked) { shakeLock(z); return; }
+  v = parseInt(v);
+  B[z].potencia = v;
+  if (v === 0) { B[z].activo=false; B[z].boost=false; clearTimerZ(z); }
+  else           B[z].activo = true;
+  updateBurner(z);
+}
+function toggleBoost(z) {
+  if (locked) { shakeLock(z); return; }
+  const b = B[z];
+  b.boost = !b.boost;
+  if (b.boost) { b.activo=true; b.potencia=17; }
+  updateBurner(z);
+}
+function allOff() {
+  if (locked) { toast('🔒 Desactiva el bloqueo primero'); return; }
+  ZONES.forEach(z => { B[z]={activo:false,potencia:0,boost:false}; clearTimerZ(z); });
+  updateAll();
+  toast('Todo apagado');
+}
+function toggleLock() {
+  locked = !locked;
+  const btn = document.getElementById('btn-child-lock');
+  btn.classList.toggle('locked', locked);
+  btn.textContent = locked ? '🔓' : '🔒';
+  ZONES.forEach(z => document.getElementById('bc-'+z).classList.toggle('locked', locked));
+  toast(locked ? '🔒 Bloqueo infantil activado' : '🔓 Bloqueo desactivado');
+}
+function shakeLock(z) {
+  const c = document.getElementById('bc-'+z);
+  c.style.animation='none'; c.offsetHeight;
+  c.style.animation='shake .3s ease';
+  setTimeout(()=>c.style.animation='',350);
+  toast('🔒 Bloqueo infantil activo');
+}
+
+// ============================================================
+// TIMERS
+// ============================================================
+function openTimer(z) {
+  timerZone = z;
+  const s = timerSecs[z]||0;
+  document.getElementById('timer-title').textContent = 'Timer — '+{trasero:'Trasero',delantera_izq:'Del. Izq.',delantera_der:'Del. Der.'}[z];
+  document.getElementById('t-min').value = Math.floor(s/60);
+  document.getElementById('t-sec').value = s%60;
+  openModal('modal-timer');
+}
+function startTimer() {
+  const m=parseInt(document.getElementById('t-min').value)||0;
+  const s=parseInt(document.getElementById('t-sec').value)||0;
+  const total=m*60+s;
+  closeModal('modal-timer');
+  if (!total) return;
+  clearTimerZ(timerZone);
+  timerSecs[timerZone]=total;
+  updateTimerUI(timerZone);
+  timerIntervals[timerZone]=setInterval(()=>{
+    timerSecs[timerZone]--;
+    updateTimerUI(timerZone);
+    if(timerSecs[timerZone]<=0){
+      clearTimerZ(timerZone);
+      B[timerZone]={activo:false,potencia:0,boost:false};
+      updateBurner(timerZone);
+      toast('⏱ Timer completado: fuego apagado');
+    }
+  },1000);
+}
+function clearTimer() { clearTimerZ(timerZone); }
+function clearTimerZ(z) {
+  clearInterval(timerIntervals[z]); timerIntervals[z]=null;
+  timerSecs[z]=0; updateTimerUI(z);
+}
+function updateTimerUI(z) {
+  const s=timerSecs[z]||0;
+  const d=document.getElementById('tdisp-'+z);
+  const b=document.getElementById('tbtn-'+z);
+  d.textContent=s>0?fmtTime(s):'';
+  b.classList.toggle('on',s>0);
+}
+
+// ============================================================
+// COOKING DEMO
+// ============================================================
+function startCookingDemo() {
+  cookStep=0; cookTime=DEMO_STEPS[0].duracion; cookPaused=false;
+  showView('cooking');
+  updateCookingUI();
+  startCookTick();
+}
+function startCookTick() {
+  if(cookInterval) clearInterval(cookInterval);
+  cookInterval=setInterval(()=>{
+    if(cookPaused) return;
+    cookTime--;
+    document.getElementById('c-countdown').textContent=fmtTime(cookTime);
+    document.getElementById('c-countdown').classList.toggle('urgent', cookTime<=10&&cookTime>0);
+    if(cookTime<=0) nextStep();
+  },1000);
+}
+function nextStep() {
+  cookStep++;
+  if(cookStep>=DEMO_STEPS.length){
+    clearInterval(cookInterval); cookInterval=null;
+    toast('🎉 ¡Receta completada!');
+    setTimeout(()=>showView('control'),1200);
+    return;
+  }
+  cookTime=DEMO_STEPS[cookStep].duracion;
+  updateCookingUI();
+}
+function updateCookingUI(){
+  const s=DEMO_STEPS[cookStep];
+  document.getElementById('c-cur').textContent=cookStep+1;
+  document.getElementById('c-step-name').textContent=s.nombre;
+  document.getElementById('c-instruction').textContent=s.instruccion;
+  document.getElementById('c-countdown').textContent=fmtTime(cookTime);
+  document.getElementById('c-countdown').classList.remove('urgent');
+  document.getElementById('c-progress').style.width=(cookStep/DEMO_STEPS.length*100)+'%';
+  const nxt=DEMO_STEPS[cookStep+1];
+  const nb=document.getElementById('next-box')||document.querySelector('.next-box');
+  if(nb) nb.style.display=nxt?'flex':'none';
+  if(nxt) document.getElementById('c-next').textContent=nxt.nombre;
+  // mini burners
+  ZONES.forEach((z,i)=>{
+    const labels=['mb-t','mb-diz','mb-dde']; // unused
+    const fuego=s.fuegos[z];
+    const mbEl=document.getElementById('mini-b-'+i);
+  });
+}
+function togglePause() {
+  cookPaused=!cookPaused;
+  document.getElementById('btn-pause').textContent=cookPaused?'▶ Reanudar':'⏸ Pausar';
+  document.getElementById('c-paused').style.display=cookPaused?'block':'none';
+}
+function endDemo() {
+  clearInterval(cookInterval); cookInterval=null;
+  showView('control');
+}
+
+// ============================================================
+// STEP MODAL TOGGLE
+// ============================================================
+function toggleStepBurner(trackId, ctrlId, slId, dispId) {
+  const track=document.getElementById(trackId);
+  const ctrl=document.getElementById(ctrlId);
+  const lbl=document.getElementById(trackId.replace('st-','tl-'));
+  const isOn=!track.classList.contains('on');
+  track.classList.toggle('on',isOn);
+  if(lbl) lbl.textContent=isOn?'Encendido':'Apagado';
+  ctrl.style.display=isOn?'flex':'none';
+}
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+let currentView = 'control';
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  const vEl=document.getElementById('view-'+v);
+  if(vEl) vEl.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    if(b.getAttribute('onclick')?.includes("'"+v+"'")) b.classList.add('active');
+  });
+  const hidNav=['cooking','editor'];
+  document.getElementById('bottom-nav').style.display=hidNav.includes(v)?'none':'flex';
+  currentView=v;
+  if(v==='cooking') startCookingDemo();
+  if(v==='recetas') renderRecipes();
+}
+function sideNav(v, btn) {
+  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(v==='auth'){
+    document.getElementById('screen-auth').style.display='flex';
+    return;
+  }
+  document.getElementById('screen-auth').style.display='none';
+  showView(v);
+}
+function enterApp() {
+  document.getElementById('screen-auth').style.display='none';
+}
+
+// ============================================================
+// RECETAS LISTA
+// ============================================================
+const RECIPES = [
+  { nombre:'Sofrito base',      icono:'🍅', tiempo:'10 min', pasos:3, personas:4 },
+  { nombre:'Pasta al dente',    icono:'🍝', tiempo:'15 min', pasos:2, personas:2 },
+  { nombre:'Arroz caldoso',     icono:'🍚', tiempo:'35 min', pasos:5, personas:4 },
+  { nombre:'Huevos revueltos',  icono:'🥚', tiempo:'5 min',  pasos:2, personas:2 },
+];
+function renderRecipes() {
+  const list=document.getElementById('recipe-list');
+  list.innerHTML='';
+  RECIPES.forEach(r=>{
+    list.innerHTML+=`
+      <div class="recipe-card" onclick="showView('cooking')">
+        <div class="recipe-thumb">${r.icono}</div>
+        <div class="recipe-info">
+          <div class="recipe-title">${r.nombre}</div>
+          <div class="recipe-meta">${r.tiempo} · ${r.pasos} pasos · ${r.personas} pers.</div>
+        </div>
+        <div class="recipe-actions">
+          <button class="btn-icon" onclick="event.stopPropagation();showView('cooking')">▶️</button>
+          <button class="btn-icon" onclick="event.stopPropagation();showView('editor')">✏️</button>
+          <button class="btn-icon" onclick="event.stopPropagation()">📋</button>
+          <button class="btn-icon" style="color:var(--danger)" onclick="event.stopPropagation()">🗑</button>
+        </div>
+      </div>`;
+  });
+}
+
+// ============================================================
+// MODAL PASO
+// ============================================================
+function openStepModal(idx=null) {
+  const steps=['Calentar aceite','Pochar cebolla','Añadir tomate'];
+  document.getElementById('step-modal-title').textContent = idx===null?'Nuevo paso':'Editar paso';
+  document.getElementById('btn-del-step').style.display = idx===null?'none':'inline-flex';
+  document.getElementById('s-name').value = idx!==null?steps[idx]:'';
+  openModal('modal-step');
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id){ document.getElementById(id).style.display='flex'; }
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+
+// ============================================================
+// TOAST
+// ============================================================
+let tTimeout=null;
+function toast(msg,ms=2800){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.remove('hide');
+  clearTimeout(tTimeout);
+  tTimeout=setTimeout(()=>el.classList.add('hide'),ms);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmtTime(s){
+  if(!s||s<0) return '0:00';
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+updateAll();
+renderRecipes();
+</script>
+</body>
+</html>
