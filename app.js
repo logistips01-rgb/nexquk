@@ -48,6 +48,8 @@ const state = {
   },
   bloqueoInfantil: false,
 
+  selectedZone: null,
+
   timerIntervals: { trasero: null, delantera_izq: null, delantera_der: null },
   timerSeconds:   { trasero: 0,    delantera_izq: 0,    delantera_der: 0    },
 
@@ -119,8 +121,12 @@ function unsubscribeAll() {
 
 function setConnStatus(status) {
   const dot = document.getElementById('conn-dot');
-  dot.className = 'conn-dot ' + status;
-  dot.title = { online: 'Conectado', offline: 'Sin conexión', syncing: 'Sincronizando...' }[status] || '';
+  if (dot) dot.className = 'conn-dot ' + status;
+  const badge = document.getElementById('conn-badge');
+  if (badge) {
+    badge.textContent = { online: 'ONLINE', offline: 'OFFLINE', syncing: 'SYNC...' }[status] || status.toUpperCase();
+    badge.className = 'conn-badge ' + status;
+  }
 }
 
 // ============================================================
@@ -230,11 +236,9 @@ function loadDeviceId() {
   if (saved) {
     state.deviceId = saved;
     document.getElementById('device-id-label').textContent = saved;
-    document.getElementById('btn-device').style.display = 'flex';
     document.getElementById('device-setup').style.display = 'none';
   } else {
     document.getElementById('device-setup').style.display = 'flex';
-    document.getElementById('btn-device').style.display = 'none';
   }
 }
 
@@ -244,7 +248,6 @@ function setDeviceId(id) {
   state.deviceId = id;
   localStorage.setItem('nexquk_device', id);
   document.getElementById('device-id-label').textContent = id;
-  document.getElementById('btn-device').style.display = 'flex';
   document.getElementById('device-setup').style.display = 'none';
   unsubscribeAll();
   subscribeDevice();
@@ -257,7 +260,7 @@ function setDeviceId(id) {
 // ============================================================
 
 function toggleBurner(zone) {
-  if (state.bloqueoInfantil) return shakeCard(zone);
+  if (state.bloqueoInfantil) return shakeZone(zone);
   const b = state.burners[zone];
   if (b.activo) {
     b.activo  = false;
@@ -273,7 +276,7 @@ function toggleBurner(zone) {
 }
 
 function setBurnerPower(zone, value) {
-  if (state.bloqueoInfantil) return shakeCard(zone);
+  if (state.bloqueoInfantil) return shakeZone(zone);
   value = parseInt(value, 10);
   const b = state.burners[zone];
   b.potencia = value;
@@ -284,7 +287,7 @@ function setBurnerPower(zone, value) {
 }
 
 function toggleBoost(zone) {
-  if (state.bloqueoInfantil) return shakeCard(zone);
+  if (state.bloqueoInfantil) return shakeZone(zone);
   const b = state.burners[zone];
   b.boost = !b.boost;
   if (b.boost) { b.activo = true; b.potencia = 17; }
@@ -298,8 +301,14 @@ function allOff() {
     state.burners[z] = { activo: false, potencia: 0, boost: false };
     clearBurnerTimer(z);
   });
+  state.selectedZone = null;
+  ZONES.forEach(z => document.getElementById('z-' + z)?.classList.remove('selected'));
+  document.getElementById('zcp-empty').style.display    = 'block';
+  document.getElementById('zcp-controls').style.display = 'none';
+  document.getElementById('zcp').classList.remove('has-selection');
   updateAllBurnersUI();
   pushToFirebase();
+  showToast('Todo apagado');
 }
 
 function toggleChildLock() {
@@ -309,13 +318,13 @@ function toggleChildLock() {
   showToast(state.bloqueoInfantil ? '🔒 Bloqueo infantil activado' : '🔓 Bloqueo desactivado');
 }
 
-function shakeCard(zone) {
-  const card = document.getElementById('card-' + zone);
-  if (!card) return;
-  card.style.animation = 'none';
-  card.offsetHeight; // reflow
-  card.style.animation = 'shake .3s ease';
-  setTimeout(() => card.style.animation = '', 350);
+function shakeZone(zone) {
+  const el = document.getElementById('z-' + zone);
+  if (!el) return;
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'shake .3s ease';
+  setTimeout(() => el.style.animation = '', 350);
   showToast('🔒 Bloqueo infantil activo');
 }
 
@@ -742,40 +751,33 @@ function duplicateRecipe(recipe) {
 }
 
 // ============================================================
-// UI — BURNER
+// UI — BURNER (HOB model)
 // ============================================================
 
 function updateBurnerUI(zone) {
-  const b      = state.burners[zone];
-  const card   = document.getElementById('card-' + zone);
-  const visual = card.querySelector(`.burner-visual[data-zone="${zone}"]`);
-  const numEl  = card.querySelector(`.burner-power-num[data-zone="${zone}"]`);
-  const slider = card.querySelector(`.power-slider[data-zone="${zone}"]`);
-  const toggle = card.querySelector(`.btn-power-toggle[data-zone="${zone}"]`);
-  const boost  = card.querySelector(`.btn-boost[data-zone="${zone}"]`);
+  const b   = state.burners[zone];
+  const el  = document.getElementById('z-' + zone);
+  const num = document.getElementById('zn-' + zone);
 
-  slider.value = b.potencia;
-  toggle.classList.toggle('on', b.activo);
-  boost.classList.toggle('active', b.boost);
-  card.classList.toggle('active', b.activo);
-  card.classList.toggle('boost-on', b.boost);
+  el.classList.toggle('on',    b.activo);
+  el.classList.toggle('boost', b.boost);
+  el.classList.toggle('selected', state.selectedZone === zone);
 
-  if (b.activo && b.potencia > 0) {
-    const { color, glow } = burnerColor(b.potencia, b.boost);
-    visual.classList.add('active');
-    visual.style.setProperty('--burner-color', color);
-    visual.style.setProperty('--burner-glow',  glow);
-    card.style.setProperty('--burner-color',   color);
-    numEl.textContent = b.boost ? 'B' : b.potencia;
-    numEl.style.color = color;
+  if (b.activo) {
+    const { color } = burnerColor(b.potencia, b.boost);
+    el.style.setProperty('--zc', color);
+    num.textContent = b.boost ? 'B' : (b.potencia || '');
   } else {
-    visual.classList.remove('active');
-    visual.style.removeProperty('--burner-color');
-    visual.style.removeProperty('--burner-glow');
-    card.style.removeProperty('--burner-color');
-    numEl.textContent = '0';
-    numEl.style.color = '';
+    el.style.removeProperty('--zc');
+    num.textContent = '0';
   }
+
+  const ledMap = { trasero: 'pled-trasero', delantera_der: 'pled-der', delantera_izq: 'pled-izq' };
+  const led = document.getElementById(ledMap[zone]);
+  if (led) led.classList.toggle('on', b.activo);
+
+  if (state.selectedZone === zone) updateZCPanel();
+  updatePanelDisplay();
 }
 
 function updateAllBurnersUI() {
@@ -784,23 +786,73 @@ function updateAllBurnersUI() {
 
 function updateChildLockUI() {
   const btn = document.getElementById('btn-child-lock');
-  btn.classList.toggle('active', state.bloqueoInfantil);
+  btn.classList.toggle('locked', state.bloqueoInfantil);
   btn.textContent = state.bloqueoInfantil ? '🔓' : '🔒';
-  ZONES.forEach(z => {
-    document.getElementById('card-' + z).classList.toggle('locked', state.bloqueoInfantil);
-  });
 }
 
 function updateTimerUI(zone) {
+  if (state.selectedZone !== zone) return;
   const secs = state.timerSeconds[zone] || 0;
-  const disp = document.querySelector(`.timer-display[data-zone="${zone}"]`);
-  const btn  = document.querySelector(`.btn-timer[data-zone="${zone}"]`);
-  if (secs > 0) {
-    disp.textContent = formatTime(secs);
-    btn.classList.add('active');
-  } else {
-    disp.textContent = '';
-    btn.classList.remove('active');
+  const val  = document.getElementById('timer-val-sel');
+  const btn  = document.getElementById('btn-timer-sel');
+  if (val) val.textContent = secs > 0 ? formatTime(secs) : '';
+  if (btn) btn.classList.toggle('active', secs > 0);
+}
+
+// ── Zone selection & ZCP ──
+
+function selectZone(zone) {
+  if (state.bloqueoInfantil) return shakeZone(zone);
+  if (state.selectedZone === zone) {
+    toggleBurner(zone);
+    return;
+  }
+  state.selectedZone = zone;
+  ZONES.forEach(z => {
+    document.getElementById('z-' + z).classList.toggle('selected', z === zone);
+  });
+  showZoneControls(zone);
+}
+
+function showZoneControls(zone) {
+  const b = state.burners[zone];
+  document.getElementById('zcp-empty').style.display    = 'none';
+  document.getElementById('zcp-controls').style.display = 'block';
+
+  const color = b.activo ? burnerColor(b.potencia, b.boost).color : '#444';
+  const panel = document.getElementById('zcp');
+  panel.classList.add('has-selection');
+  panel.style.setProperty('--sel-color', color);
+
+  const ZLBLS = { trasero: 'TRASERO', delantera_izq: 'DEL. IZQ.', delantera_der: 'DEL. DER.' };
+  document.getElementById('zcp-name').textContent = ZLBLS[zone];
+  document.getElementById('zcp-pwr').textContent  = b.activo ? (b.boost ? 'B' : b.potencia) : '0';
+  document.getElementById('pwr-slider').value     = b.potencia;
+  document.getElementById('pwr-btn').classList.toggle('on', b.activo);
+  document.getElementById('btn-boost-sel').classList.toggle('boost-active', b.boost);
+  updateTimerUI(zone);
+}
+
+function updateZCPanel() {
+  if (state.selectedZone) showZoneControls(state.selectedZone);
+}
+
+function updatePanelDisplay() {
+  const el = document.getElementById('panel-disp');
+  if (!el) return;
+  el.textContent = ZONES.map(z => {
+    const b = state.burners[z];
+    return b.activo ? (b.boost ? 'B' : b.potencia) : '—';
+  }).join(' ');
+}
+
+function buildTicks() {
+  const el = document.getElementById('slider-ticks');
+  if (!el) return;
+  for (let i = 0; i <= 17; i++) {
+    const d = document.createElement('div');
+    d.className = 'tick' + (i % 3 === 0 ? ' major' : '');
+    el.appendChild(d);
   }
 }
 
@@ -1047,19 +1099,23 @@ function initEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   });
 
-  // --- BURNER CONTROLS (delegación desde el panel) ---
-  const controlInner = document.getElementById('view-control-inner');
-  controlInner.addEventListener('click', e => {
-    const zone = e.target.closest('[data-zone]')?.dataset.zone;
-    if (!zone) return;
-    if (e.target.matches('.btn-power-toggle')) toggleBurner(zone);
-    else if (e.target.matches('.btn-boost'))   toggleBoost(zone);
-    else if (e.target.matches('.btn-timer'))   openTimerModal(zone);
+  // --- ZONE SELECTION (HOB) ---
+  ZONES.forEach(z => {
+    document.getElementById('z-' + z).addEventListener('click', () => selectZone(z));
   });
-  controlInner.addEventListener('input', e => {
-    if (e.target.matches('.power-slider')) {
-      setBurnerPower(e.target.dataset.zone, e.target.value);
-    }
+
+  // --- ZONE CONTROL PANEL ---
+  document.getElementById('pwr-btn').addEventListener('click', () => {
+    if (state.selectedZone) toggleBurner(state.selectedZone);
+  });
+  document.getElementById('pwr-slider').addEventListener('input', e => {
+    if (state.selectedZone) setBurnerPower(state.selectedZone, e.target.value);
+  });
+  document.getElementById('btn-boost-sel').addEventListener('click', () => {
+    if (state.selectedZone) toggleBoost(state.selectedZone);
+  });
+  document.getElementById('btn-timer-sel').addEventListener('click', () => {
+    if (state.selectedZone) openTimerModal(state.selectedZone);
   });
 
   // --- GLOBAL CONTROLS ---
@@ -1150,6 +1206,7 @@ function injectShakeKeyframes() {
 
 document.addEventListener('DOMContentLoaded', () => {
   injectShakeKeyframes();
+  buildTicks();
   initEvents();
   initAuth();
   registerSW();

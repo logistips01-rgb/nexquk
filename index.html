@@ -47,7 +47,7 @@
 
   <!-- HEADER -->
   <header id="app-header">
-    <div class="header-logo"><span>🔥</span> NexQuk</div>
+    <div class="header-logo"><span>🔥</span>NexQuk</div>
     <div class="header-right">
       <div id="conn-dot" class="conn-dot" title="Estado conexión"></div>
       <div id="btn-device" class="device-selector" style="display:none">
@@ -66,107 +66,109 @@
          ==================================================== -->
     <div id="view-control" class="view active">
 
-      <div id="view-control-inner" style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1">
-        <!-- Device ID input (first time) -->
-        <div id="device-setup" class="field-group" style="display:none">
-          <label>ID del dispositivo ESP32</label>
-          <div style="display:flex;gap:8px">
-            <input id="input-device-id" class="field-input" placeholder="ej: cocina_casa" style="flex:1">
-            <button id="btn-set-device" class="btn btn-primary btn-sm">OK</button>
-          </div>
-          <span class="text-muted" style="font-size:.8rem">Debe coincidir con el ID configurado en el ESP32</span>
+      <!-- Status bar -->
+      <div class="status-bar">
+        <div class="device-tag">DISPOSITIVO: <b id="device-id-label">—</b></div>
+        <div class="conn-badge" id="conn-badge">OFFLINE</div>
+      </div>
+
+      <!-- Device setup (shown on first run) -->
+      <div id="device-setup" class="field-group" style="display:none;padding:12px 14px;flex-shrink:0">
+        <label>ID del dispositivo ESP32</label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input id="input-device-id" class="field-input" placeholder="ej: cocina_casa" style="flex:1">
+          <button id="btn-set-device" class="btn btn-primary btn-sm">OK</button>
         </div>
+        <span style="font-size:.72rem;color:var(--text2);margin-top:4px;display:block">Debe coincidir con el ID configurado en el ESP32</span>
+      </div>
 
-        <!-- Vitro layout: Balay 3EB915LR (trasero arriba, 2 delanteros abajo) -->
-        <div class="vitro-layout">
+      <!-- HOB — Balay 3EB915LR -->
+      <div class="hob-wrap">
+        <div class="hob" id="hob">
 
-          <!-- Zona trasera -->
-          <div class="vitro-row single">
-            <div class="burner-card" id="card-trasero" data-zone="trasero">
-              <div class="burner-header">
-                <span class="burner-name">Trasero</span>
-                <div class="burner-header-right">
-                  <button class="btn-boost" data-zone="trasero">BOOST</button>
-                  <button class="btn-power-toggle" data-zone="trasero"></button>
-                </div>
-              </div>
-              <div class="burner-body">
-                <div class="burner-visual" data-zone="trasero">
-                  <span class="burner-power-num" data-zone="trasero">0</span>
-                </div>
-                <div class="slider-wrap">
-                  <input type="range" min="0" max="17" value="0" class="power-slider" data-zone="trasero">
-                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
-                </div>
-              </div>
-              <div class="burner-footer">
-                <button class="btn-timer" data-zone="trasero">⏱ Timer</button>
-                <span class="timer-display" data-zone="trasero"></span>
-              </div>
+          <!-- ZONA GRANDE — TRASERO (arriba izquierda) -->
+          <div class="zone zone-lg" id="z-trasero">
+            <div class="zone-ring"></div>
+            <div class="zone-ring-inner"></div>
+            <div class="zone-ring-core"></div>
+            <div class="zone-core">
+              <span class="z-num" id="zn-trasero">0</span>
+              <span class="z-lbl">TRAS</span>
             </div>
           </div>
 
-          <!-- Zonas delanteras -->
-          <div class="vitro-row double">
-
-            <!-- Delantera izquierda -->
-            <div class="burner-card" id="card-delantera_izq" data-zone="delantera_izq">
-              <div class="burner-header">
-                <span class="burner-name">Del. Izq.</span>
-                <div class="burner-header-right">
-                  <button class="btn-boost" data-zone="delantera_izq">BOOST</button>
-                  <button class="btn-power-toggle" data-zone="delantera_izq"></button>
-                </div>
-              </div>
-              <div class="burner-body">
-                <div class="burner-visual" data-zone="delantera_izq">
-                  <span class="burner-power-num" data-zone="delantera_izq">0</span>
-                </div>
-                <div class="slider-wrap">
-                  <input type="range" min="0" max="17" value="0" class="power-slider" data-zone="delantera_izq">
-                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
-                </div>
-              </div>
-              <div class="burner-footer">
-                <button class="btn-timer" data-zone="delantera_izq">⏱ Timer</button>
-                <span class="timer-display" data-zone="delantera_izq"></span>
-              </div>
+          <!-- ZONA PEQUEÑA — DEL. DER. (arriba derecha) -->
+          <div class="zone zone-sm" id="z-delantera_der">
+            <div class="zone-ring"></div>
+            <div class="zone-ring-inner"></div>
+            <div class="zone-core">
+              <span class="z-num" id="zn-delantera_der">0</span>
+              <span class="z-lbl">D.DR</span>
             </div>
-
-            <!-- Delantera derecha -->
-            <div class="burner-card" id="card-delantera_der" data-zone="delantera_der">
-              <div class="burner-header">
-                <span class="burner-name">Del. Der.</span>
-                <div class="burner-header-right">
-                  <button class="btn-boost" data-zone="delantera_der">BOOST</button>
-                  <button class="btn-power-toggle" data-zone="delantera_der"></button>
-                </div>
-              </div>
-              <div class="burner-body">
-                <div class="burner-visual" data-zone="delantera_der">
-                  <span class="burner-power-num" data-zone="delantera_der">0</span>
-                </div>
-                <div class="slider-wrap">
-                  <input type="range" min="0" max="17" value="0" class="power-slider" data-zone="delantera_der">
-                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
-                </div>
-              </div>
-              <div class="burner-footer">
-                <button class="btn-timer" data-zone="delantera_der">⏱ Timer</button>
-                <span class="timer-display" data-zone="delantera_der"></span>
-              </div>
-            </div>
-
           </div>
-        </div><!-- /vitro-layout -->
 
-        <!-- Controles globales -->
-        <div class="global-controls">
-          <button id="btn-all-off" class="btn btn-danger" style="flex:1">⬛ Todo apagado</button>
-          <button id="btn-child-lock" class="btn btn-secondary">🔒</button>
+          <!-- ZONA MEDIANA — DEL. IZQ. (abajo derecha) -->
+          <div class="zone zone-md" id="z-delantera_izq">
+            <div class="zone-ring"></div>
+            <div class="zone-ring-inner"></div>
+            <div class="zone-ring-core"></div>
+            <div class="zone-core">
+              <span class="z-num" id="zn-delantera_izq">0</span>
+              <span class="z-lbl">D.IZ</span>
+            </div>
+          </div>
+
+          <!-- Panel decorativo inferior -->
+          <div class="hob-panel">
+            <span class="panel-brand">Balay</span>
+            <div class="panel-led-group">
+              <div class="panel-led" id="pled-trasero"></div>
+              <div class="panel-led" id="pled-der"></div>
+              <div class="panel-led" id="pled-izq"></div>
+            </div>
+            <div class="panel-display" id="panel-disp">— — —</div>
+          </div>
+
         </div>
+      </div>
 
-      </div><!-- /inner -->
+      <!-- Zone control panel -->
+      <div class="zone-ctrl-panel" id="zcp">
+        <div id="zcp-empty" class="zcp-empty">Toca un fuego para controlarlo</div>
+        <div id="zcp-controls" style="display:none">
+          <div class="zcp-header">
+            <span class="zcp-name" id="zcp-name">TRASERO</span>
+            <div class="zcp-state">
+              <span class="zcp-pwr-display" id="zcp-pwr">0</span>
+              <div class="pwr-btn" id="pwr-btn"></div>
+            </div>
+          </div>
+          <div class="zcp-slider-row">
+            <input type="range" class="ind-slider" id="pwr-slider" min="0" max="17" value="0">
+            <div class="slider-ticks" id="slider-ticks"></div>
+          </div>
+          <div class="zcp-actions">
+            <button class="zcp-act-btn" id="btn-boost-sel">
+              <span class="act-icon">⚡</span>BOOST
+            </button>
+            <button class="zcp-act-btn" id="btn-timer-sel">
+              <span class="act-icon">⏱</span>
+              <span class="timer-val" id="timer-val-sel"></span>
+              TIMER
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global controls -->
+      <div class="global-row">
+        <button id="btn-all-off" class="btn-alloff"><span>■</span> TODO APAGADO</button>
+        <button id="btn-child-lock" class="btn-lock">🔒</button>
+      </div>
+
+      <!-- Hidden backward-compat element (app.js show/hide calls) -->
+      <div id="btn-device" style="display:none"></div>
+
     </div><!-- /view-control -->
 
 
