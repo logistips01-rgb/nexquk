@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NexQuk">
+  <title>NexQuk</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+
+<!-- ========================================================
+     PANTALLA AUTH
+     ======================================================== -->
+<div id="screen-auth" class="screen">
+  <div class="auth-logo">
+    <span class="flame">🔥</span>
+    <h1>NexQuk</h1>
+    <p>Control inteligente de cocina</p>
+  </div>
+  <div class="auth-buttons">
+    <button id="btn-google-login" class="btn btn-primary btn-lg btn-full">
+      <svg width="20" height="20" viewBox="0 0 48 48" fill="none" style="flex-shrink:0">
+        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+      </svg>
+      Entrar con Google
+    </button>
+    <button id="btn-demo" class="btn btn-ghost btn-lg btn-full">
+      Probar en modo demo
+    </button>
+  </div>
+</div>
+
+<!-- ========================================================
+     APP PRINCIPAL
+     ======================================================== -->
+<div id="app" class="screen">
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-logo"><span>🔥</span> NexQuk</div>
+    <div class="header-right">
+      <div id="conn-dot" class="conn-dot" title="Estado conexión"></div>
+      <div id="btn-device" class="device-selector" style="display:none">
+        <span>Dispositivo:</span>
+        <span id="device-id-label">—</span>
+      </div>
+      <button id="btn-avatar" class="btn-avatar" title="Cuenta">?</button>
+    </div>
+  </header>
+
+  <!-- VIEWS -->
+  <main id="views-container">
+
+    <!-- ====================================================
+         VIEW: CONTROL MANUAL
+         ==================================================== -->
+    <div id="view-control" class="view active">
+
+      <div id="view-control-inner" style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1">
+        <!-- Device ID input (first time) -->
+        <div id="device-setup" class="field-group" style="display:none">
+          <label>ID del dispositivo ESP32</label>
+          <div style="display:flex;gap:8px">
+            <input id="input-device-id" class="field-input" placeholder="ej: cocina_casa" style="flex:1">
+            <button id="btn-set-device" class="btn btn-primary btn-sm">OK</button>
+          </div>
+          <span class="text-muted" style="font-size:.8rem">Debe coincidir con el ID configurado en el ESP32</span>
+        </div>
+
+        <!-- Vitro layout: Balay 3EB915LR (trasero arriba, 2 delanteros abajo) -->
+        <div class="vitro-layout">
+
+          <!-- Zona trasera -->
+          <div class="vitro-row single">
+            <div class="burner-card" id="card-trasero" data-zone="trasero">
+              <div class="burner-header">
+                <span class="burner-name">Trasero</span>
+                <div class="burner-header-right">
+                  <button class="btn-boost" data-zone="trasero">BOOST</button>
+                  <button class="btn-power-toggle" data-zone="trasero"></button>
+                </div>
+              </div>
+              <div class="burner-body">
+                <div class="burner-visual" data-zone="trasero">
+                  <span class="burner-power-num" data-zone="trasero">0</span>
+                </div>
+                <div class="slider-wrap">
+                  <input type="range" min="0" max="17" value="0" class="power-slider" data-zone="trasero">
+                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
+                </div>
+              </div>
+              <div class="burner-footer">
+                <button class="btn-timer" data-zone="trasero">⏱ Timer</button>
+                <span class="timer-display" data-zone="trasero"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zonas delanteras -->
+          <div class="vitro-row double">
+
+            <!-- Delantera izquierda -->
+            <div class="burner-card" id="card-delantera_izq" data-zone="delantera_izq">
+              <div class="burner-header">
+                <span class="burner-name">Del. Izq.</span>
+                <div class="burner-header-right">
+                  <button class="btn-boost" data-zone="delantera_izq">BOOST</button>
+                  <button class="btn-power-toggle" data-zone="delantera_izq"></button>
+                </div>
+              </div>
+              <div class="burner-body">
+                <div class="burner-visual" data-zone="delantera_izq">
+                  <span class="burner-power-num" data-zone="delantera_izq">0</span>
+                </div>
+                <div class="slider-wrap">
+                  <input type="range" min="0" max="17" value="0" class="power-slider" data-zone="delantera_izq">
+                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
+                </div>
+              </div>
+              <div class="burner-footer">
+                <button class="btn-timer" data-zone="delantera_izq">⏱ Timer</button>
+                <span class="timer-display" data-zone="delantera_izq"></span>
+              </div>
+            </div>
+
+            <!-- Delantera derecha -->
+            <div class="burner-card" id="card-delantera_der" data-zone="delantera_der">
+              <div class="burner-header">
+                <span class="burner-name">Del. Der.</span>
+                <div class="burner-header-right">
+                  <button class="btn-boost" data-zone="delantera_der">BOOST</button>
+                  <button class="btn-power-toggle" data-zone="delantera_der"></button>
+                </div>
+              </div>
+              <div class="burner-body">
+                <div class="burner-visual" data-zone="delantera_der">
+                  <span class="burner-power-num" data-zone="delantera_der">0</span>
+                </div>
+                <div class="slider-wrap">
+                  <input type="range" min="0" max="17" value="0" class="power-slider" data-zone="delantera_der">
+                  <div class="slider-labels"><span>0</span><span>9</span><span>17</span></div>
+                </div>
+              </div>
+              <div class="burner-footer">
+                <button class="btn-timer" data-zone="delantera_der">⏱ Timer</button>
+                <span class="timer-display" data-zone="delantera_der"></span>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /vitro-layout -->
+
+        <!-- Controles globales -->
+        <div class="global-controls">
+          <button id="btn-all-off" class="btn btn-danger" style="flex:1">⬛ Todo apagado</button>
+          <button id="btn-child-lock" class="btn btn-secondary">🔒</button>
+        </div>
+
+      </div><!-- /inner -->
+    </div><!-- /view-control -->
+
+
+    <!-- ====================================================
+         VIEW: BIBLIOTECA DE RECETAS
+         ==================================================== -->
+    <div id="view-recetas" class="view">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:14px;flex:1">
+        <div class="view-header">
+          <h2>Mis recetas</h2>
+          <button id="btn-new-recipe" class="btn btn-primary btn-sm">+ Nueva</button>
+        </div>
+        <div id="recipes-list" class="recipes-list"></div>
+      </div>
+    </div>
+
+
+    <!-- ====================================================
+         VIEW: EDITOR DE RECETAS
+         ==================================================== -->
+    <div id="view-editor" class="view">
+      <div class="editor-header">
+        <button id="btn-back-editor" class="btn-icon" style="font-size:1.3rem">←</button>
+        <h2 id="editor-title">Nueva receta</h2>
+        <button id="btn-save-recipe" class="btn btn-primary btn-sm">Guardar</button>
+      </div>
+      <div class="editor-body">
+        <div class="field-group">
+          <label>Nombre de la receta</label>
+          <input id="recipe-name-input" class="field-input" type="text" placeholder="Ej: Paella valenciana">
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="field-group" style="flex:1">
+            <label>Dificultad</label>
+            <select id="recipe-dificultad" class="field-input">
+              <option value="facil">Fácil</option>
+              <option value="media" selected>Media</option>
+              <option value="dificil">Difícil</option>
+            </select>
+          </div>
+          <div class="field-group" style="flex:1">
+            <label>Personas</label>
+            <input id="recipe-personas" class="field-input" type="number" min="1" max="20" value="2">
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-header">
+          <h3>Pasos</h3>
+          <button id="btn-add-step" class="btn btn-ghost btn-sm">+ Paso</button>
+        </div>
+        <div id="steps-list" class="steps-list"></div>
+        <div id="editor-empty" class="empty-state" style="display:none">
+          <div class="empty-icon">📋</div>
+          <p>Sin pasos aún. Pulsa "+ Paso" para añadir el primero.</p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ====================================================
+         VIEW: MODO COCCIÓN
+         ==================================================== -->
+    <div id="view-cooking" class="view">
+      <div class="cooking-bar">
+        <span id="cooking-recipe-name" class="cooking-title"></span>
+        <button id="btn-cancel-cooking" class="btn-icon">✕</button>
+      </div>
+      <div class="cooking-progress-track">
+        <div id="cooking-progress-fill" class="cooking-progress-fill" style="width:0%"></div>
+      </div>
+      <div class="cooking-body">
+        <div class="cooking-step-meta">
+          <div class="step-badge">Paso <b id="cooking-step-cur">1</b> de <span id="cooking-step-tot">1</span></div>
+          <div id="cooking-paused-badge" style="display:none;background:rgba(255,184,51,.15);color:var(--warning);border:1px solid rgba(255,184,51,.3);border-radius:12px;padding:4px 12px;font-size:.8rem;font-weight:700">⏸ PAUSADO</div>
+        </div>
+        <div class="cooking-main">
+          <h1 id="cooking-step-name" class="cooking-step-name"></h1>
+          <div id="cooking-countdown" class="cooking-countdown">0:00</div>
+          <p id="cooking-instruction" class="cooking-instruction"></p>
+        </div>
+        <div class="cooking-burners-mini">
+          <div class="mini-burner" id="mini-trasero">
+            <span class="mini-burner-label">Tras.</span>
+            <span class="mini-burner-power" id="mini-p-trasero">—</span>
+          </div>
+          <div class="mini-burner" id="mini-delantera_izq">
+            <span class="mini-burner-label">D.Izq</span>
+            <span class="mini-burner-power" id="mini-p-delantera_izq">—</span>
+          </div>
+          <div class="mini-burner" id="mini-delantera_der">
+            <span class="mini-burner-label">D.Der</span>
+            <span class="mini-burner-power" id="mini-p-delantera_der">—</span>
+          </div>
+        </div>
+        <div id="next-step-box" class="next-step-box">
+          <span class="next-step-label">A continuación:</span>
+          <span id="cooking-next-step" class="next-step-name"></span>
+        </div>
+        <div class="cooking-controls">
+          <button id="btn-pause-cooking" class="btn btn-secondary btn-xl">⏸ Pausar</button>
+          <button id="btn-skip-step" class="btn btn-primary btn-xl">Saltar →</button>
+        </div>
+      </div>
+    </div>
+
+  </main><!-- /views-container -->
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-view="control">
+      <span class="nav-icon">🔥</span>
+      <span>Control</span>
+    </button>
+    <button class="nav-btn" data-view="recetas">
+      <span class="nav-icon">📖</span>
+      <span>Recetas</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+
+<!-- ========================================================
+     MODAL: TIMER
+     ======================================================== -->
+<div id="modal-timer" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 id="timer-modal-title">Timer — Trasero</h3>
+      <button id="btn-close-timer" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label>Duración</label>
+        <div class="duration-inputs">
+          <input id="timer-min-input" class="field-input" type="number" min="0" max="999" value="5" inputmode="numeric">
+          <span class="duration-sep">min</span>
+          <input id="timer-sec-input" class="field-input" type="number" min="0" max="59" value="0" inputmode="numeric">
+          <span class="duration-sep">seg</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btn-timer-clear" class="btn btn-ghost btn-sm">Borrar</button>
+      <div style="flex:1"></div>
+      <button id="btn-timer-confirm" class="btn btn-primary">Iniciar timer</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================
+     MODAL: EDITOR DE PASO
+     ======================================================== -->
+<div id="modal-step" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 id="step-modal-title">Nuevo paso</h3>
+      <button id="btn-close-step" class="btn-icon">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label>Nombre del paso</label>
+        <input id="step-name-input" class="field-input" type="text" placeholder="Ej: Pochar la cebolla">
+      </div>
+      <div class="field-group">
+        <label>Duración</label>
+        <div class="duration-inputs">
+          <input id="step-min-input" class="field-input" type="number" min="0" max="999" value="5" inputmode="numeric">
+          <span class="duration-sep">min</span>
+          <input id="step-sec-input" class="field-input" type="number" min="0" max="59" value="0" inputmode="numeric">
+          <span class="duration-sep">seg</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Instrucción para el cocinero</label>
+        <textarea id="step-instruction-input" class="field-input" rows="3" placeholder="Ej: Añade la cebolla y sofríe a fuego lento hasta que esté transparente"></textarea>
+      </div>
+      <div class="field-group">
+        <label>Configuración de fuegos</label>
+        <!-- Trasero -->
+        <div class="step-burner-section" style="margin-bottom:8px">
+          <div class="step-burner-row">
+            <span class="step-burner-name">Trasero</span>
+            <div class="toggle-switch" id="toggle-step-trasero">
+              <div class="toggle-track" id="track-step-trasero">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span style="font-size:.82rem;color:var(--text2)" id="label-step-trasero">Apagado</span>
+            </div>
+          </div>
+          <div id="controls-step-trasero" style="display:none">
+            <div class="step-burner-row">
+              <input type="range" min="0" max="17" value="5" class="power-slider" id="slider-step-trasero" style="flex:1">
+              <span class="step-burner-power-display" id="disp-step-trasero">5</span>
+            </div>
+          </div>
+        </div>
+        <!-- Delantera Izq -->
+        <div class="step-burner-section" style="margin-bottom:8px">
+          <div class="step-burner-row">
+            <span class="step-burner-name">Del. Izq.</span>
+            <div class="toggle-switch" id="toggle-step-delantera_izq">
+              <div class="toggle-track" id="track-step-delantera_izq">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span style="font-size:.82rem;color:var(--text2)" id="label-step-delantera_izq">Apagado</span>
+            </div>
+          </div>
+          <div id="controls-step-delantera_izq" style="display:none">
+            <div class="step-burner-row">
+              <input type="range" min="0" max="17" value="5" class="power-slider" id="slider-step-delantera_izq" style="flex:1">
+              <span class="step-burner-power-display" id="disp-step-delantera_izq">5</span>
+            </div>
+          </div>
+        </div>
+        <!-- Delantera Der -->
+        <div class="step-burner-section">
+          <div class="step-burner-row">
+            <span class="step-burner-name">Del. Der.</span>
+            <div class="toggle-switch" id="toggle-step-delantera_der">
+              <div class="toggle-track" id="track-step-delantera_der">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span style="font-size:.82rem;color:var(--text2)" id="label-step-delantera_der">Apagado</span>
+            </div>
+          </div>
+          <div id="controls-step-delantera_der" style="display:none">
+            <div class="step-burner-row">
+              <input type="range" min="0" max="17" value="5" class="power-slider" id="slider-step-delantera_der" style="flex:1">
+              <span class="step-burner-power-display" id="disp-step-delantera_der">5</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="btn-delete-step" class="btn btn-danger btn-sm" style="display:none">Borrar</button>
+      <div style="flex:1"></div>
+      <button id="btn-save-step" class="btn btn-primary">Guardar paso</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================
+     MODAL: MENÚ DE USUARIO
+     ======================================================== -->
+<div id="modal-user" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" style="gap:8px">
+      <div id="user-info" style="padding:8px 0 12px;border-bottom:1px solid var(--border);margin-bottom:4px">
+        <div style="font-weight:700" id="user-name-label">—</div>
+        <div style="font-size:.85rem;color:var(--text2)" id="user-email-label">—</div>
+      </div>
+      <button id="btn-change-device" class="btn btn-ghost btn-full" style="justify-content:flex-start">⚙️ Cambiar dispositivo</button>
+      <button id="btn-logout" class="btn btn-ghost btn-full" style="justify-content:flex-start;color:var(--danger)">← Cerrar sesión</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- TOAST -->
+<div id="toast" class="hidden"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
